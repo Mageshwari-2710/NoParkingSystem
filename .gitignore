@@ -1,0 +1,8 @@
+nopark_env/
+env/
+__pycache__/
+*.pyc
+.env
+*.mp4
+*.pt
+uploads/
