@@ -1,8 +1,6 @@
-from flask import Flask, render_template, request
 import os
-import cv2
+from flask import Flask, render_template, request
 from werkzeug.utils import secure_filename
-from ultralytics import YOLO
 
 app = Flask(__name__)
 
@@ -10,9 +8,6 @@ UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
-# Load model ONCE (important for Render)
-model = YOLO("best.pt")
 
 
 @app.route("/")
@@ -22,8 +17,11 @@ def home():
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    file = request.files.get("video")
+    from ultralytics import YOLO  # ✅ LOAD INSIDE ROUTE (IMPORTANT)
 
+    model = YOLO("best.pt")       # ✅ prevents Render startup crash
+
+    file = request.files.get("video")
     if not file:
         return "No file uploaded"
 
@@ -31,6 +29,7 @@ def upload():
     path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     file.save(path)
 
+    import cv2
     cap = cv2.VideoCapture(path)
 
     frames = 0
@@ -42,7 +41,6 @@ def upload():
             break
 
         frames += 1
-
         results = model(frame)
 
         for r in results:
@@ -55,12 +53,13 @@ def upload():
 
     return f"""
     <h2>Result</h2>
-    <p>Total Frames: {frames}</p>
+    <p>Frames: {frames}</p>
     <p>Violations: {violations}</p>
-    <h3>Fine: ₹{fine}</h3>
+    <h2>Fine: ₹{fine}</h2>
     """
 
 
+# IMPORTANT FOR RENDER
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
