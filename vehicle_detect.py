@@ -1,34 +1,47 @@
 import cv2
-from test_sms import send_sms
+from ultralytics import YOLO
 
-def process_video(video_path):
+# Load model once (faster + safer)
+model = YOLO("yolov8n.pt")
+
+def detect_vehicle(video_path):
     cap = cv2.VideoCapture(video_path)
 
-    detected = False
+    # No-parking zone (adjust if needed)
+    zone_x1, zone_y1 = 100, 150
+    zone_x2, zone_y2 = 500, 400
 
-    while True:
+    violation_found = False
+
+    while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
 
-        # 🔥 YOUR AI MODEL GOES HERE
-        vehicle_detected = True  # placeholder
+        results = model(frame)
 
-        if vehicle_detected and not detected:
-            detected = True
+        for result in results:
+            for box in result.boxes:
+                cls = int(box.cls[0])
 
-            print("🚗 No Parking Violation Detected")
+                # vehicle classes (car, motorbike, bus, truck)
+                if cls in [2, 3, 5, 7]:
 
-            owner_number = "+91XXXXXXXXXX"
-            message = "🚫 No Parking violation detected. Fine applied."
+                    x1, y1, x2, y2 = map(int, box.xyxy[0])
 
-            send_sms(owner_number, message)
+                    cx = (x1 + x2) // 2
+                    cy = (y1 + y2) // 2
 
+                    # check no-parking zone
+                    if zone_x1 < cx < zone_x2 and zone_y1 < cy < zone_y2:
+                        violation_found = True
+
+        if violation_found:
             break
 
     cap.release()
 
-    # ❌ IMPORTANT: DO NOT USE THIS IN CLOUD
-    # cv2.destroyAllWindows()
-
-    return "Processing completed"
+    if violation_found:
+        return "🚨 VIOLATION DETECTED - Fine: Rs.200"
+    else:
+        return "✅ No Violation Detected"
