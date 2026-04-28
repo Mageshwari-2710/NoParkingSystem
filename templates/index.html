@@ -3,19 +3,20 @@
 <head>
     <title>No Parking System</title>
 </head>
+<body>
 
-<body style="text-align:center; font-family:Arial; margin-top:50px;">
+    <h1>No Parking Detection System 🚗</h1>
 
-    <h1>🚦 No Parking Detection System</h1>
-
-    <form action="/upload" method="post" enctype="multipart/form-data">
-
+    <h2>Upload Video</h2>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
         <input type="file" name="video" required>
-        <br><br>
-
-        <button type="submit">Upload Video</button>
-
+        <button type="submit">Upload</button>
     </form>
+
+    <hr>
+
+    <h2>Live Detection</h2>
+    <a href="/live"><button>Start Live</button></a>
 
 </body>
 </html>
