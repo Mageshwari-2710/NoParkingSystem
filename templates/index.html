@@ -1,113 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>No Parking Detection System</title>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-
-        h1 {
-            background: #222;
-            color: white;
-            padding: 15px;
-            margin: 0;
-        }
-
-        .container {
-            margin-top: 40px;
-        }
-
-        .card {
-            background: white;
-            width: 400px;
-            margin: 20px auto;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
-        }
-
-        input[type="file"] {
-            margin: 10px 0;
-        }
-
-        button {
-            background: #007bff;
-            color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        .live-btn {
-            background: #28a745;
-        }
-
-        .live-btn:hover {
-            background: #1e7e34;
-        }
-
-        .footer {
-            margin-top: 40px;
-            font-size: 12px;
-            color: gray;
-        }
-    </style>
+    <title>No Parking System</title>
 </head>
-
 <body>
 
-<h1>🚗 No Parking Detection System</h1>
+<h1>No Parking Detection</h1>
 
-<div class="container">
-
-    <!-- UPLOAD SECTION -->
-    <div class="card">
-        <h2>Upload Video</h2>
-
-        <form action="/upload" method="POST" enctype="multipart/form-data">
-            <input type="file" name="video" required>
-            <br>
-            <button type="submit">Upload & Detect</button>
-        </form>
-    </div>
-
-    <!-- LIVE SECTION -->
-    <div class="card">
-        <h2>Live Detection</h2>
-        <p>Start real-time monitoring (next step upgrade)</p>
-
-        <a href="/live">
-            <button class="live-btn">Start Live Camera</button>
-        </a>
-    </div>
-
-    <!-- INFO SECTION -->
-    <div class="card">
-        <h2>System Info</h2>
-        <p>✔ YOLO Detection Enabled</p>
-        <p>✔ Fine Calculation System</p>
-        <p>✔ Upload-based Processing</p>
-        <p>✔ Twilio SMS (Next Upgrade)</p>
-    </div>
-
-</div>
-
-<div class="footer">
-    No Parking System © 2026 | AI Based Smart Surveillance
-</div>
+<form action="/upload" method="POST" enctype="multipart/form-data">
+    <input type="file" name="video" accept="video/*" required>
+    <button type="submit">Upload Video</button>
+</form>
 
 </body>
 </html>
