@@ -1,9 +1,6 @@
 from flask import Flask, render_template, request
 import os
 from vehicle_detect import detect_vehicle
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = Flask(__name__)
 
@@ -20,10 +17,13 @@ def home():
 # ---------------- UPLOAD ----------------
 @app.route("/upload", methods=["POST"])
 def upload():
-    file = request.files.get("video")
+    if "video" not in request.files:
+        return "No file part in request"
 
-    if not file:
-        return "No file uploaded"
+    file = request.files["video"]
+
+    if file.filename == "":
+        return "No file selected"
 
     path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
     file.save(path)
@@ -32,7 +32,7 @@ def upload():
 
     return f"""
     <html>
-    <body style="text-align:center;font-family:Arial;margin-top:50px;">
+    <body style="text-align:center; font-family:Arial; margin-top:50px;">
         <h2>🚦 Processing Completed</h2>
         <p>{result}</p>
         <a href="/">Go Back</a>
@@ -40,6 +40,7 @@ def upload():
     </html>
     """
 
-# ---------------- RUN ----------------
+# ---------------- MAIN (IMPORTANT FOR RENDER) ----------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
