@@ -1,15 +1,27 @@
 from flask import Flask, render_template, request
+from ultralytics import YOLO
+import cv2
 import os
 import uuid
+import time
 
 app = Flask(__name__)
 
-# Folder to store uploaded videos
+# =========================
+# CONFIG
+# =========================
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Load YOLO ONCE (IMPORTANT FOR RENDER)
+model = YOLO("yolov8n.pt")
+
+# No Parking Zone (x1, y1, x2, y2)
+NO_PARKING_ZONE = (100, 100, 500, 400)
+
+
 # =========================
-# HOME PAGE (UI)
+# HOME PAGE
 # =========================
 @app.route("/")
 def home():
@@ -21,57 +33,100 @@ def home():
 # =========================
 @app.route("/upload", methods=["POST"])
 def upload_video():
-    try:
-        file = request.files["video"]
+    file = request.files["video"]
 
-        if file.filename == "":
-            return "No file selected ❌"
+    if file.filename == "":
+        return "No file selected ❌"
 
-        # Create unique filename (important for Render)
-        filename = str(uuid.uuid4()) + "_" + file.filename
-        path = os.path.join(UPLOAD_FOLDER, filename)
+    filename = str(uuid.uuid4()) + "_" + file.filename
+    path = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(path)
 
-        file.save(path)
+    # PROCESS VIDEO
+    process_video(path)
 
-        # STEP 4: PROCESS HOOK (NO YOLO YET)
-        process_video(path)
-
-        return f"""
-        Video uploaded successfully ✅<br>
-        File: {filename}<br>
-        Processing started 🚀
-        """
-
-    except Exception as e:
-        return f"Error: {str(e)}"
+    return f"""
+    <h2>Upload Successful ✅</h2>
+    <p>File: {filename}</p>
+    <p>Processing Done 🚀 Check server logs</p>
+    """
 
 
 # =========================
-# STEP 4: VIDEO PROCESS FUNCTION (SAFE PLACEHOLDER)
+# FINE CALCULATION
+# =========================
+def calculate_fine(seconds):
+    rate_per_minute = 10
+    minutes = seconds / 60
+    return int(minutes * rate_per_minute)
+
+
+# =========================
+# CORE DETECTION FUNCTION
 # =========================
 def process_video(video_path):
-    print("===================================")
-    print("VIDEO RECEIVED FOR PROCESSING")
-    print("Path:", video_path)
-    print("===================================")
 
-    # IMPORTANT:
-    # We will add:
-    # - OpenCV frame reading
-    # - YOLO detection
-    # - No-parking zone logic
-    # - Fine calculation
-    # - Twilio SMS
-    #
-    # in next steps
+    cap = cv2.VideoCapture(video_path)
+
+    violation_start_time = None
+    total_violation_time = 0
+
+    x1, y1, x2, y2 = NO_PARKING_ZONE
+
+    print("\n========== PROCESS START ==========")
+    print("Video:", video_path)
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+
+        if not ret:
+            break
+
+        # YOLO detection
+        results = model(frame)
+
+        vehicle_in_zone = False
+
+        for r in results:
+            for box in r.boxes:
+                cls = int(box.cls[0])
+                label = model.names[cls]
+
+                if label in ["car", "motorbike", "bus", "truck"]:
+                    x1b, y1b, x2b, y2b = box.xyxy[0]
+                    cx = int((x1b + x2b) / 2)
+                    cy = int((y1b + y2b) / 2)
+
+                    # Check if inside no-parking zone
+                    if x1 < cx < x2 and y1 < cy < y2:
+                        vehicle_in_zone = True
+
+        # TIME TRACKING
+        if vehicle_in_zone:
+            if violation_start_time is None:
+                violation_start_time = time.time()
+        else:
+            if violation_start_time is not None:
+                total_violation_time += time.time() - violation_start_time
+                violation_start_time = None
+
+    cap.release()
+
+    # Final calculation
+    fine = calculate_fine(total_violation_time)
+
+    print("========== RESULT ==========")
+    print("Total Violation Time (sec):", total_violation_time)
+    print("Fine Amount:", fine)
+    print("========== END ==========\n")
 
 
 # =========================
-# LIVE PAGE (PLACEHOLDER)
+# LIVE PAGE (NEXT STEP)
 # =========================
 @app.route("/live")
 def live():
-    return "Live detection will be added in STEP 5 🚀"
+    return "Live detection will be added in next step 🚀"
 
 
 # =========================
