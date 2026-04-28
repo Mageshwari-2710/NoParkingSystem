@@ -1,37 +1,34 @@
-from dotenv import load_dotenv
-load_dotenv()
-
 import cv2
 from test_sms import send_sms
 
-def detect_vehicle(video_path):
+def process_video(video_path):
     cap = cv2.VideoCapture(video_path)
 
-    violation_sent = False
+    detected = False
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
-        # ------------------------
-        # YOUR MODEL LOGIC HERE
-        # ------------------------
-        vehicle_detected = True
+        # 🔥 YOUR AI MODEL GOES HERE
+        vehicle_detected = True  # placeholder
 
-        if vehicle_detected and not violation_sent:
-            print("🚗 Violation detected")
+        if vehicle_detected and not detected:
+            detected = True
+
+            print("🚗 No Parking Violation Detected")
 
             owner_number = "+91XXXXXXXXXX"
-            message = "🚫 No Parking Violation detected"
+            message = "🚫 No Parking violation detected. Fine applied."
 
             send_sms(owner_number, message)
 
-            violation_sent = True
             break
 
     cap.release()
 
-    # IMPORTANT: NO cv2.imshow, NO destroyAllWindows
+    # ❌ IMPORTANT: DO NOT USE THIS IN CLOUD
+    # cv2.destroyAllWindows()
 
-    return "Processed Successfully"
+    return "Processing completed"
